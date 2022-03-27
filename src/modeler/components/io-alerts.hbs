@@ -1,0 +1,44 @@
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <!-- modal body -->
+          <div class="io-alerts">
+
+            <div class="io-control alert" jswidget="import-warnings-alert">
+              <div class="alert-message">
+                Diagram may not render correctly due to import warnings.
+
+                <a href jsaction="click:bio.showImportDetails">Show details</a>.
+              </div>
+
+              <a href class="close" aria-hidden="true" jsaction="click:bio.clearImportDetails">&times;</a>
+            </div>
+
+            <div class="io-control alert" jswidget="undo-redo-alert">
+              <div class="alert-message">
+                You edited the diagram.
+
+                <a href jsaction="click:bio.undo">Undo last change</a>.
+              </div>
+
+              <a href class="close" aria-hidden="true" jsaction="click:bio.hideUndoAlert">&times;</a>
+            </div>
+
+          </div>
+          <!-- modal body end -->
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

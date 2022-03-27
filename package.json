@@ -1,0 +1,25 @@
+{
+  "name": "bpmn-js-debug",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "mon": "nodemon \"./src/batch.js\""
+  },
+  "devDependencies": {
+    "@rollup/plugin-inject": "^4.0.4",
+    "bootstrap": "^4.3.1",
+    "bpmn-js": "^8.10.0",
+    "bpmn-js-cli": "^2.2.0",
+    "bpmn-js-embedded-comments": "^0.6.1",
+    "bpmn-js-properties-panel": "^0.46.0",
+    "camunda-bpmn-moddle": "^6.1.2",
+    "handlebars": "^4.7.7",
+    "jquery": "^3.6.0",
+    "nodemon": "^2.0.15",
+    "vite": "^2.8.0"
+  }
+}

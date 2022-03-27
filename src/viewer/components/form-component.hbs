@@ -1,0 +1,59 @@
+<div class="modal-dialog modal-dialog-centered" role="document">
+  <div class="modal-content">
+    <!-- modal header -->
+    <div class="modal-header" style="background-color:#D7DBDD;">
+      <h5 class="modal-title" id="ModalLongTitle">Uncertainties Form</h5>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <!-- modal body -->
+    <div class="modal-body" style="background-color:#ECF0F1;">
+      <form>
+        <div class="form-group">
+          <label for="integrity" class="font-weight-bold">integrity</label>
+          <textarea rows="2" style="height:50%" class="form-control form-control-sm" id="integrity" aria-describedby="integrityHelp" placeholder="..."></textarea>
+          <small id="integrityHelp" class="form-text text-muted">Is the activity executed correctly?</small>
+        </div>
+        <div class="form-group">
+          <label for="confidentiality" class="font-weight-bold">confidentiality</label>
+          <textarea rows="2" style="height:50%" class="form-control form-control-sm" id="confidentiality" aria-describedby="confidentialityHelp" placeholder="..."></textarea>
+          <small id="confidentialityHelp" class="form-text text-muted">Is the internal execution of the activity only visible to authorized resources?</small>
+        </div>
+        <div class="form-group">
+          <label for="availability" class="font-weight-bold">availability</label>
+          <textarea rows="2" style="height:50%" class="form-control form-control-sm" id="availability" aria-describedby="availabilityHelp" placeholder="..."></textarea>
+          <small id="availabilityHelp" class="form-text text-muted">Are the resources, needed for the execution of the activity available?</small>
+        </div>
+        <div class="form-group">
+          <label for="non-repudiation" class="font-weight-bold">non-repudiation</label>
+          <textarea rows="2" style="height:50%" class="form-control form-control-sm" id="non-repudiation" aria-describedby="non-repudiationHelp" placeholder="..."></textarea>
+          <small id="non-repudiationHelp" class="form-text text-muted">If a certain activity is performed, is it non-repudiable?</small>
+        </div>
+        <div class="form-group">
+          <label for="performance" class="font-weight-bold">performance</label>
+          <textarea rows="2" style="height:50%" class="form-control form-control-sm" id="performance" aria-describedby="performanceHelp" placeholder="..."></textarea>
+          <small id="performanceHelp" class="form-text text-muted">Is the activity executed within the needed border of time and resource consumption?</small>
+        </div>
+        <div class="form-group">
+          <label for="resilience" class="font-weight-bold">resilience</label>
+          <textarea rows="2" style="height:50%" class="form-control form-control-sm" id="resilience" aria-describedby="resilienceHelp" placeholder="..."></textarea>
+          <small id="resilienceHelp" class="form-text text-muted">If a certain activity is performed, is it non-repudiable?</small>
+        </div>
+        <div class="row">
+          <div class="col-sm">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+          <div class="col-sm text-right">
+            <button type="submit" class="btn btn-info float-right">Search</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <!-- modal body end -->
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+    </div>
+  </div>
+</div>
+
