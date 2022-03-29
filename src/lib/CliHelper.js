@@ -1,3 +1,5 @@
+import { getBusinessObject } from '../modeler/util/ModelUtil';
+
 const aryCONS_TASK = [
   "bpmn:Activity",
   "bpmn:Task",
@@ -24,12 +26,44 @@ const aryCONS_TASK_CATEGORY = [
 class CliHelper {
   // private 
   _elReg ;
+  _mdling;
+  _mddle;
   
   /********
    * constractor */
-  constructor(elementRegistry) {
+  constructor(elementRegistry, moddle, modeling) {
     this._elReg = elementRegistry;
+    this._mddle = moddle;
+    this._mdling = modeling;
   }
+  
+  
+  /********
+   * private 
+   *    getBusinessObjectOfElement(element: element) : object (businessObject) */
+  getBusinessObjectOfElement (element) {
+    return getBusinessObject(element)
+  }
+  
+  /********
+   * public
+   *    getExtensionElement(element: element) : object (businessObject) */
+  getExtensionElement(element, type) {
+    if (!element.extensionElements) {
+      return;
+    }
+    
+    return element.extensionElements.values.filter((elm) => {
+      return elm.$instanceOf(type);
+    })[0];
+  }
+  
+  updateProperties(elTarget, props) {
+    console.log(elTarget);
+    console.log(props);
+    modeling.updateProperties(elTarget, props);
+  }
+  
   
   /********
    * 1. getElemetsIds(elm_category: string) : object[] */
@@ -60,12 +94,31 @@ class CliHelper {
   }
   
   /********
-   * 2. getElementBProperties(id: string) : object */
+   * public 
+   *    includes(id: string, elm_category: string) : boolean */
+  async includes(id, elm_category){
+    const aryObj = await this.getElemetsIds(elm_category);
+    console.log(`target = ${id}`)
+    return aryObj.some((obj) => {
+      console.log(obj);
+      return (obj.id === id);
+    })
+  }
+  
+  /********
+   * 2. `BProperties(id: string) : object */
   async getElementBProperties(id) {
     let retObj = {};
     const elm = this._elReg.get(id);
     retObj = this._convertElementTo(elm);
     return retObj
+  }
+  
+  /********
+   * private 
+   *    getElement(id: string) : object (bpmn root element) */
+  getElement(id) {
+    return this._elReg.get(id);
   }
   
   /********
@@ -192,7 +245,6 @@ class CliHelper {
       // 
       // If using async/await, can not use Array.map()
       for (let keyObj of tempAry) {
-        // console.log(keyObj.id)
         obj = await this.getElementBPropsExtensionsObject(keyObj.id)
         console.log(obj);
         if (obj){
@@ -200,23 +252,39 @@ class CliHelper {
         }
       }
     }
-    // console.log(retAry)
     return retAry
+  }
+
+  /********
+   * getExtensionElementsBo(id: string) : object {businessObject, element} */
+  getExtensionElementsBo = (id) => {
+    let element = this.getElement(id);
+    let bo = this.getBusinessObjectOfElement(element);
+    return {bo, element}
+  }
+
+  /********
+   * getExtensionElementsAnalysis(id: string) : 
+   *                               object {element, extensionElements, analysisDetailsElm} */
+  getExtensionElementsAnalysis = (id) => {
+    let {bo, element} = this.getExtensionElementsBo(id);
+    let { analysisDetailsElm, extensionElements} = this.getExtensionElementsAnalysisByBo(bo, this._mddle)
+    // set data
+    if (!analysisDetailsElm) {
+      analysisDetailsElm = this._mddle.create('qa:AnalysisDetails');
+      extensionElements.get('values').push(analysisDetailsElm);
+    }
+    return { element, bo, extensionElements, analysisDetailsElm}
+  }
+
+  /********
+   * getExtensionElementsAnalysisByBo(bo: businessObject) : object {anaylisysElement, extensionElements} */
+  getExtensionElementsAnalysisByBo = (bo) => { 
+    const extensionElements = bo.extensionElements ||  this._mddle.create('bpmn:ExtensionElements');
+    let analysisDetailsElm = this.getExtensionElement(bo, 'qa:AnalysisDetails');
+    return { analysisDetailsElm, extensionElements}
   }
   
 }
-
-
-// // if use private fields, can not use this syntax!
-// CliHelper.prototype.listBo = async () => {
-//   const elmIds = await this._cli.elements();
-//   let elm ;
-//   let elmsObj = {};
-//   for (let id of elmIds) {
-//     elm = await this._cli.element(id);
-//     elmsObj[id] = elm.businessObject;
-//   }
-//   return elmsObj
-// }
 
 export default CliHelper;
