@@ -23,6 +23,9 @@ const aryCONS_TASK_CATEGORY = [
   "Transaction",
 ]
 
+const CONS_EXTENSION_ELEMENTS = 'bpmn:ExtensionElements';
+
+
 class CliHelper {
   // private 
   _elReg ;
@@ -30,38 +33,12 @@ class CliHelper {
   _mddle;
   
   /********
-   * constractor */
+   * constractor 
+   */
   constructor(elementRegistry, moddle, modeling) {
     this._elReg = elementRegistry;
     this._mddle = moddle;
     this._mdling = modeling;
-  }
-  
-  
-  /********
-   * private 
-   *    getBusinessObjectOfElement(element: element) : object (businessObject) */
-  getBusinessObjectOfElement (element) {
-    return getBusinessObject(element)
-  }
-  
-  /********
-   * public
-   *    getExtensionElement(element: element) : object (businessObject) */
-  getExtensionElement(element, type) {
-    if (!element.extensionElements) {
-      return;
-    }
-    
-    return element.extensionElements.values.filter((elm) => {
-      return elm.$instanceOf(type);
-    })[0];
-  }
-  
-  updateProperties(elTarget, props) {
-    console.log(elTarget);
-    console.log(props);
-    modeling.updateProperties(elTarget, props);
   }
   
   
@@ -254,35 +231,89 @@ class CliHelper {
     }
     return retAry
   }
-
+  
+  
   /********
-   * getExtensionElementsBo(id: string) : object {businessObject, element} */
-  getExtensionElementsBo = (id) => {
-    let element = this.getElement(id);
-    let bo = this.getBusinessObjectOfElement(element);
-    return {bo, element}
+   * getBo(element: element) : object (businessObject) */
+  getBo = (element) => {
+    let bo = getBusinessObject(element);
+    return bo
   }
 
   /********
-   * getExtensionElementsAnalysis(id: string) : 
-   *                               object {element, extensionElements, analysisDetailsElm} */
-  getExtensionElementsAnalysis = (id) => {
-    let {bo, element} = this.getExtensionElementsBo(id);
-    let { analysisDetailsElm, extensionElements} = this.getExtensionElementsAnalysisByBo(bo, this._mddle)
-    // set data
-    if (!analysisDetailsElm) {
-      analysisDetailsElm = this._mddle.create('qa:AnalysisDetails');
-      extensionElements.get('values').push(analysisDetailsElm);
+   * public
+   *    getExtensionElementByBo
+   (bo: businessObject) : object (extensionElement) */
+  getExtensionElementByBo(bo, type) {
+    if (!bo.extensionElements) {  // FIXME
+      return;
     }
-    return { element, bo, extensionElements, analysisDetailsElm}
+    
+    return bo.extensionElements.values.filter((exElm) => {
+      return exElm.$instanceOf(type);
+    })[0];
+  }
+  
+  /********
+   * getExtensionElementsAll(id: string, element_name) : 
+   *          object {element, businessObject, extensionElements, extentionElement} */
+  getExtensionElementsAll = (id, element_type) => {
+    let element = this.getElement(id);
+    let bo = this.getBo(element);
+    let extensionElements = this.getExtensionElements(bo, element_type)
+    return { element, bo, extensionElements }
   }
 
   /********
-   * getExtensionElementsAnalysisByBo(bo: businessObject) : object {anaylisysElement, extensionElements} */
-  getExtensionElementsAnalysisByBo = (bo) => { 
-    const extensionElements = bo.extensionElements ||  this._mddle.create('bpmn:ExtensionElements');
-    let analysisDetailsElm = this.getExtensionElement(bo, 'qa:AnalysisDetails');
-    return { analysisDetailsElm, extensionElements}
+   * getExtensionElements(bo: businessObject, element_type) : 
+   *          object extensionElements */
+  getExtensionElements = (bo, element_type) => { 
+    let extensionElements = bo.extensionElements;
+    if (!extensionElements) {
+      extensionElements = this._mddle.create(CONS_EXTENSION_ELEMENTS);
+    }
+    let extensionElement = this.getExtensionElementByBo(bo, element_type);
+    // set data
+    if (! extensionElement) {
+      extensionElement = this._mddle.create(element_type);
+      extensionElements.get('values').push(extensionElement);
+    }
+    
+    return extensionElements
+  }
+  
+  /********
+   * public
+   *    getExtensionElement(extensionElements: object, element_type: string)
+   (bo: businessObject) : object (extensionElement) */
+  getExtensionElement(extensionElements, element_type) {
+    return extensionElements.values.filter((exElm) => {
+      return exElm.$instanceOf(element_type);
+    })[0];  
+  }
+  
+  /********
+   * public
+   *    hasExtensionElementOfConcern(extensionElements, element_type) : boolean */
+  hasExtensionElementOfConcern(extensionElements, element_type) {
+    let exElm = getExtensionElement(extensionElements, element_type)
+    if (exElm) {
+      if(! (exElm['concerns'] == '')){
+        return true
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
+  }
+  
+  /********
+   * updateProperties(elTarget: element, props: properties) : */
+  updateProperties(elTarget, props) {
+    // console.log(elTarget);
+    // console.log(props);
+    modeling.updateProperties(elTarget, props);
   }
   
 }

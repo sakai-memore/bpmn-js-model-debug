@@ -13,7 +13,7 @@
       ],
       "properties": [
         {
-          "name": "suitable",
+          "name": "score",
           "isAttr": true,
           "type": "Integer"
         }
@@ -24,7 +24,7 @@
       "superClass": [ "Element" ],
       "properties": [
         {
-          "name": "lastChecked",
+          "name": "checkedDate",
           "isAttr": true,
           "type": "String"
         },

@@ -4,8 +4,6 @@ import 'bootstrap';
 
 import DataUtil from  './lib/DataUtil';
 import HbsUtil from  './lib/HbsUtil';
-import Dto from  './lib/FormDto';
-// import Dto from  './lib/FormDtoDummy';
 
 import { togglePanel } from './lib/togglePanel';
 import { registerFileDrop } from './lib/registerFileDrop';
@@ -21,6 +19,7 @@ import CliHelper from  './lib/CliHelper.js';
 
 
 // import './style.css';
+
 
 // display a diagram: render xml data on canvas ------------------ //
 const displayDiagram = async (xml_data) => {
@@ -60,121 +59,134 @@ const drawCanvas = async (bpmnXML) => {
   window.moddle = moddle; // public on window for debug
   window.modeling = modeling; // public on window for debug
   
-  // create Helper class
-  let cliHelper = new CliHelper(elementRegistry, moddle, modeling);
-  await debug(eventBus, cliHelper);
+  await debug(eventBus, elementRegistry, modeling, moddle);
 
 }
 
-// debug entry                                    ---------------- //
-const debug = async (eventBus, cliHelper) => {
-  
-  // getElementsBProperties -- debug
+// debug entry
+const debug = async (eventBus, elementRegistry, modeling, moddle) => {
+  // create Helper class
+  let cliHelper = new CliHelper(elementRegistry, modeling)
+  // 
+  // ---------------------------------------debug
+  const elKeyAll = await cliHelper.getElemetsIds('Task');
+  // console.log(elKeyAll);
+  for (let obj of elKeyAll) {
+    let elm = await cliHelper.getElementBProperties(obj.id);
+    // console.log(elm)
+  }
+  // getElements
   let taskElms = await cliHelper.getElementsBProperties('Task');
   console.log(`taskElms = ${JSON.stringify(taskElms)}`)
   
-  // getElementsAll -- debug
-  let {
-      element, 
-      bo, 
-      extensionElements }  = cliHelper.getExtensionElementsAll('SCAN_QR_CODE', EX_ELEMENT_NAME);
-  let extensionElement = cliHelper.getExtensionElement(extensionElements, EX_ELEMENT_NAME)
-  // console.log(extensionElement)
-  // console.log(extensionElements)
-  console.log(bo)
+  // ---------------------------------------debug for descriptor
   
-  /** element contextmenu(right click) event
-  */
-  eventBus.on('element.contextmenu', HIGH_PRIORITY, async (elm) => {
+  
+  // open quality assurance if user right clicks on element
+  // qa html elements
+  const elQualityAssurance = document.getElementById('quality-assurance');
+  // 
+  const elSuitabilityScore = document.getElementById('suitability-score');
+  const elLastChecked = document.getElementById('last-checked');
+  const elForm = document.getElementById('form');
+  
+  // popup <-> parent screen
+  // let storeBO;
+  // let storeAnalysisDetailsElm;
+  let storeElTarget;
+  let storeSuitabilityScore;
+  
+  // validate suitability score  ---not use!
+  function validate(el) {
+    const {value} = el;
+    const okayEl = document.getElementById('okay');
+    const warningEl = document.getElementById('warning');
+    // 
+    if (isNaN(value)) {
+      // warningEl.classList.remove('hidden');
+      // okayEl.disabled = true;
+    } else {
+      warningEl.classList.add('hidden');
+      okayEl.disabled = false;
+    }
+  }
+  
+  bpmnJs.on('element.contextmenu', HIGH_PRIORITY, (elm) => {
     elm.originalEvent.preventDefault();
     elm.originalEvent.stopPropagation();
-    
-    // ignore elements not in a task category
-    let isIncludes = await cliHelper.includes(elm.element.id, 'Task');
-    if (!isIncludes) {
-      console.log(`this element is not in task category: ${elm.element.id}`);
-      return;
-    } 
-    
-    // html element operation
-    document.getElementById('quality-assurance').classList.remove('hidden');
-    
-    // popluate the element id
-    let id = elm.element.id;
-    $("#element-id").text(id);
-    
-    // get element - businessObject - extensionElements - extentionElement
-    const target_element_name = EX_ELEMENT_NAME;
-    let {
-      element, 
-      bo, 
-      extensionElements } = cliHelper.getExtensionElementsAll(id, target_element_name);
-    let extensionElement = cliHelper.getExtensionElement(extensionElements, EX_ELEMENT_NAME)
-    
-    // prepare data for html element from extensionElements.extensionElement
-    const jsonObj = Dto.convertfromExtElm(id, bo, extensionElement);
-    console.log(jsonObj)
-    
-    // assign values for html element
-    const score = jsonObj.score;
-    const checked_date = jsonObj.checked_date;
-    
-    // html element operation
-    $('#score').val(score);
-    $('#checked-date').text(checked_date);
-    $('#score').focus();
     // 
-    // console.log(`score = "${score}"`);
-    console.log(`#score = "${$('#score').val()}"`)
-    console.log(`checked_date = "${checked_date}"`);
+    elQualityAssurance.classList.remove('hidden');
+    storeElTarget = elm.element; // for other event
+    // ignore root element
+    if (!elm.element.parent) {
+      return;
+    }
+    
+    console.log(elm);
+    // 
+    let bo = cliHelper.getBusinessObjectOfElement(storeElTarget);
+    console.log(bo);
+    const extensionElements = bo.extensionElements || moddle.create('bpmn:ExtensionElements');
+    let storeAnalysisDetailsElm = cliHelper.getExtensionElement(bo, 'qa:AnalysisDetails');
+    
+    // 
+    elSuitabilityScore.value = bo['suitable'] ? bo['suitable'] : '';
+    elSuitabilityScore.focus();
+    elLastChecked.textContent = storeAnalysisDetailsElm ? storeAnalysisDetailsElm.lastChecked : '-';
+    // 
+    console.log(elSuitabilityScore.value)
+    // validate(elSuitabilityScore);
   });
   
-  /** form submit event
-  */
   // set suitability core and last checked if user submits
-  $('#form').on('submit', (event) => {
+  elForm.addEventListener('submit', (event) => {
     event.preventDefault();
     event.stopPropagation();
     
-    // validate a score field
-    const score = $('#score').val();
-    console.log(`score = ${score}`)
-    if (isNaN(Number(score))) {
+    storeSuitabilityScore = Number(elSuitabilityScore.value);
+    
+    if (isNaN(storeSuitabilityScore)) {
       return;
     }
-    // assign the element id
-    let id = $("#element-id").text();
-    
-    // get element - businessObject - extensionElements - extentionElement
-    const target_element_name = EX_ELEMENT_NAME;
-    let {
-      element, 
-      bo, 
-      extensionElements } = cliHelper.getExtensionElementsAll(id, target_element_name);
-    let extensionElement = cliHelper.getExtensionElement(extensionElements, EX_ELEMENT_NAME)
-    
-    // console.log(extensionElement);
-    // prepare extensionElement
-    const jsonObj = {
-      'checked_date': new Date().toISOString(),
+    // 
+    let bo = cliHelper.getBusinessObjectOfElement(storeElTarget);
+    console.log(bo);
+    const extensionElements = bo.extensionElements || moddle.create('bpmn:ExtensionElements');
+    let storeAnalysisDetailsElm = cliHelper.getExtensionElement(bo, 'qa:AnalysisDetails');
+    // 
+    if (!storeAnalysisDetailsElm) {
+      storeAnalysisDetailsElm = moddle.create('qa:AnalysisDetails');
+      extensionElements.get('values').push(storeAnalysisDetailsElm);
     }
-    extensionElement = Dto.converttoExtElm(extensionElement, jsonObj); // FIXME
-    // extensionElement.checkedDate = new Date().toISOString();
-    console.log(extensionElement);
-    
-    // prepare properties json object for updating
-    const objProps = {
+    // 
+    storeAnalysisDetailsElm.lastChecked = new Date().toISOString();
+    cliHelper.updateProperties(storeElTarget, {
       extensionElements,
-      score: score
-    }
+      suitable: storeSuitabilityScore
+    });
     
-    // FIXME : can not update extensionElements
-    cliHelper.updateProperties(element, objProps);
-    // console.log(cliHelper.getElement(id));
-    
-    // operate html element
-    document.getElementById('quality-assurance').classList.add('hidden');;
+    // 
+    elQualityAssurance.classList.add('hidden');
   });
+  
+  // close quality assurance if user presses escape
+  elForm.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      elQualityAssurance.classList.add('hidden');
+    }
+  });
+  
+  // // hide quality assurance if user clicks outside
+  // $('window').on('click', (event) => {
+  //   // const { target } = event;
+  //   if (event.target === elQualityAssurance || elQualityAssurance.contains(event.target)) {
+  //     return;
+  //   }
+  //   elQualityAssurance.classList.add('hidden');
+  // });
+  
+  // // validate suitability score if user inputs value
+  // elSuitabilityScore.addEventListener('input', validate);
   
 }
 
@@ -198,39 +210,6 @@ const addListener = () => {
     registerFileDrop(dropArea, displayDiagram);
   }
   
-  // close quality assurance if user presses escape
-  $('#form').on('keydown', (event) => {
-    if (event.key === 'Escape') {
-      document.getElementById('quality-assurance').classList.add('hidden');
-    }
-  });
-  
-  // validate suitability score  ---not use!
-  // function validate(val) {
-  //   const okayEl = document.getElementById('okay');
-  //   const warningEl = document.getElementById('warning');
-  //   // 
-  //   if (isNaN(val)) {
-  //     // warningEl.classList.remove('hidden');
-  //     // okayEl.disabled = true;
-  //   } else {
-  //     warningEl.classList.add('hidden');
-  //     okayEl.disabled = false;
-  //   }
-  // }
-  
-  
-  // // hide quality assurance if user clicks outside
-  // $('window').on('click', (event) => {
-  //   // const { target } = event;
-  //   if (event.target === elQualityAssurance || elQualityAssurance.contains(event.target)) {
-  //     return;
-  //   }
-  //   elQualityAssurance.classList.add('hidden');
-  // });
-  
-  // // validate suitability score if user inputs value
-  // $('#suitability-score').on('input', validate);
 }
 
 // ------------------------------// entry point
@@ -291,8 +270,6 @@ const EL_DROP_AREA = "#row-main";
 const EL_LINK_DOWNLOAD = "[data-download]";
 
 const HIGH_PRIORITY = 1500;
-
-const EX_ELEMENT_NAME = 'qa:AnalysisDetails';
 
 const aryHbsComponents = [
   {el: '#form-component', data: {}, hbsPath: './viewer/components/form-component.hbs'},
